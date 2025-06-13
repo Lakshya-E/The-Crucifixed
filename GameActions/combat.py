@@ -163,7 +163,7 @@ class AttackHandler:
             
             # Create semi-transparent surface
             attack_surface = pygame.Surface((50, 50))
-            attack_surface.set_alpha(100)  # Semi-transparent
+            attack_surface.set_alpha(200)  # Semi-transparent
             attack_surface.fill((255, 255, 0))  # Yellow
             
             screen.blit(attack_surface, (pixel_x, pixel_y))

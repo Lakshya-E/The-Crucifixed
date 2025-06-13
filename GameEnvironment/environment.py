@@ -1,6 +1,8 @@
 # game_objects/environment.py
+import pygame
 from .base import GameObject
 from GlobalColours.colour_config import G_COLOURS
+from Helpers.constants import PLAYER_ATTRIBUTES, HEALTH_BAR_ATTRIBUTES
 
 class Wall(GameObject):
     """Static wall that blocks movement"""
@@ -65,3 +67,35 @@ class Obstacle(GameObject):
     def __init__(self, x, y, width, height, color=G_COLOURS.debris):
         super().__init__(x, y, width, height, color)  # Gray by default
         self.solid = True
+
+class HealthBar():
+    """Displays the player's health"""
+    def __init__(self, colour):
+        self.width = HEALTH_BAR_ATTRIBUTES["width"]
+        self.height = HEALTH_BAR_ATTRIBUTES["height"]
+        self.x = HEALTH_BAR_ATTRIBUTES["x"]
+        self.y = HEALTH_BAR_ATTRIBUTES["y"]
+        self.max_health = HEALTH_BAR_ATTRIBUTES["max_health"]
+        self.current_health = 70 #HEALTH_BAR_ATTRIBUTES["max_health"]
+
+        self.colour = colour
+        solid = False
+
+    def draw(self, screen):
+        """Draw the health bar on screen"""
+        health_ratio = self.current_health / self.max_health
+        
+        pygame.draw.rect(screen, G_COLOURS.healthbar.outline, 
+                (self.x - 2, self.y - 2, self.width + 4, self.height + 4))
+        pygame.draw.rect(screen, G_COLOURS.healthbar.empty, 
+                (self.x, self.y, self.width, self.height))
+        pygame.draw.rect(screen, self.colour, 
+                (self.x, self.y, self.width * health_ratio, self.height))
+
+    def update(self, health):
+        """Update the health bar to match the player's health"""
+        if health > self.max_health:
+            health = self.max_health
+        elif health < 0:
+            health = 0
+        self.current_health = health

@@ -19,4 +19,13 @@ COLOURS = {
         "main": (255, 0, 0),
         "healthbar": (0, 255, 0)
     },
+
+    # healthbar
+    "healthbar": {
+        "green": (0, 117, 0),
+        "red": (255, 0, 0),
+        "empty": (120,6,6), # (59,59,59),
+        "outline": (255,230,255)
+    }
 }
+
