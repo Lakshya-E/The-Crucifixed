@@ -1,40 +1,46 @@
 # player.py
-import pygame
+from settings import *
 from GlobalColours.colour_config import G_COLOURS
 from GameEnvironment.base import GameObject
+from GameEnvironment.environment import HealthBar
 from GameItems.weapons import WEAPONS
 from GameActions.combat import AttackHandler
+from Helpers.constants import *
 
 class Player(GameObject):
-    def __init__(self, screen_width, screen_height):
+    def __init__(self):
         # Initialize as GameObject
         super().__init__(
-            screen_width // 2,  # x
-            screen_height // 2,  # y
+            SCREEN_WIDTH // 2,  # x
+            SCREEN_HEIGHT // 2,  # y
             50,  # width
-            50,  # height
+            100,  # height
             G_COLOURS.player.main  # red color
         )
+
+        self.display_screen = pygame.display.get_surface()
         
         # Player-specific attributes
-        self.speed = 5
-        self.health = 100
-        self.max_health = 100
-        self.attack_power = 10
+        self.speed = PLAYER_ATTRIBUTES["speed"]
+        self.health = HEALTH_BAR_ATTRIBUTES["max_health"]
+        self.attack_power = PLAYER_ATTRIBUTES["attack_power"]
 
         # Create attack handler
         self.attack_handler = AttackHandler(self)
         
         # Store screen dimensions for boundary checking
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
         
         # Player is not solid (other objects can overlap)
         self.solid = False
+
+        # Create health bar
+        self.health_bar = HealthBar(G_COLOURS.healthbar.green)
     
     def move_left(self, obstacles=None):
         """Move left if no collision"""
-        if self.rect.x > 0:
+        if self.rect.x > 0 + SURFACE_PADDING["left"]:
             # Try to move
             original_x = self.rect.x
             self.rect.x -= self.speed
@@ -48,7 +54,7 @@ class Player(GameObject):
     
     def move_right(self, obstacles=None):
         """Move right if no collision"""
-        if self.rect.x < self.screen_width - self.rect.width:
+        if self.rect.x < self.screen_width - self.rect.width - SURFACE_PADDING["right"]:
             original_x = self.rect.x
             self.rect.x += self.speed
 
@@ -60,7 +66,7 @@ class Player(GameObject):
     
     def move_up(self, obstacles=None):
         """Move up if no collision"""
-        if self.rect.y > 0:
+        if self.rect.y > 0 + SURFACE_PADDING["top"]:
             original_y = self.rect.y
             self.rect.y -= self.speed
 
@@ -72,7 +78,7 @@ class Player(GameObject):
     
     def move_down(self, obstacles=None):
         """Move down if no collision"""
-        if self.rect.y < self.screen_height - self.rect.height:
+        if self.rect.y < self.screen_height - self.rect.height - SURFACE_PADDING["bottom"]:
             original_y = self.rect.y
             self.rect.y += self.speed
 
@@ -91,13 +97,13 @@ class Player(GameObject):
     
     def handle_input(self, keys, obstacles=None):
         """Handle all player input"""
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.move_left(obstacles)
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.move_right(obstacles)
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.move_up(obstacles)
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.move_down(obstacles)
 
         # Handle attack input and return attack info
@@ -139,11 +145,13 @@ class Player(GameObject):
     def take_damage(self, damage):
         """Take damage and return True if still alive"""
         self.health -= damage
+        self.health_bar.update(max(self.health, 0))
         return self.health > 0
     
     def heal(self, amount):
         """Heal player"""
         self.health = min(self.health + amount, self.max_health)
+        self.health_bar.update(self.health)
 
     def update(self):
         """Update player and attack handler"""
@@ -162,19 +170,11 @@ class Player(GameObject):
         """Check if player can attack right now"""
         return self.attack_handler.can_attack()
 
-    def draw(self, screen):
+    def draw(self):
         """Draw player and health bar"""
-        # Draw player
-        super().draw(screen)
-        
-        # Draw simple health bar above player
-        bar_width = 50
-        bar_height = 6
-        health_ratio = self.health / self.max_health
-        
         # Background (red)
-        pygame.draw.rect(screen, G_COLOURS.player.main, 
-                        (self.rect.x, self.rect.y - 10, bar_width, bar_height))
+        pygame.draw.rect(self.display_screen, G_COLOURS.player.main, 
+                        (self.rect.x, self.rect.y, PLAYER_ATTRIBUTES["width"], PLAYER_ATTRIBUTES["height"]))
         # Health (green)
-        pygame.draw.rect(screen, G_COLOURS.player.healthbar, 
-                        (self.rect.x, self.rect.y - 10, bar_width * health_ratio, bar_height))
+        self.health_bar.draw(self.display_screen)
+        
